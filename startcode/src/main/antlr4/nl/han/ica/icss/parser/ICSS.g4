@@ -63,15 +63,15 @@ ASSIGNMENT_OPERATOR: ':=';
 //stylesheet: variableAssesment* stylerule* EOF;
 stylesheet: variableAssignment* stylerule* EOF;
 
-stylerule: selector OPEN_BRACE declaration* CLOSE_BRACE;
-declaration: (propertyName COLON (variableReference | literal | expression) SEMICOLON ) | ifClause;
+stylerule: selector OPEN_BRACE (ifClause | declaration)* CLOSE_BRACE;
+declaration: propertyName COLON (variableReference | literal | expression) SEMICOLON;
 
 //variableAssesment: propertyName ASSIGNMENT_OPERATOR literal SEMICOLON;
 variableAssignment: variableReference ASSIGNMENT_OPERATOR expression SEMICOLON;
 
 expression: (literal operator (expression | literal)) | literal;
-ifClause: IF BOX_BRACKET_OPEN literal BOX_BRACKET_CLOSE OPEN_BRACE declaration* CLOSE_BRACE elseClause?;
-elseClause: ELSE OPEN_BRACE declaration* CLOSE_BRACE elseClause?;
+ifClause: IF BOX_BRACKET_OPEN literal BOX_BRACKET_CLOSE OPEN_BRACE (ifClause | declaration)* CLOSE_BRACE elseClause?;
+elseClause: ELSE OPEN_BRACE (ifClause | declaration)* CLOSE_BRACE elseClause?;
 propertyName: CAPITAL_IDENT+ | LOWER_IDENT+;
 
 //literals
@@ -94,7 +94,7 @@ classSelector: CLASS_IDENT;
 tagSelector: LOWER_IDENT+ | CAPITAL_IDENT+;
 
 //operations
-operator: multiplyOperator | addOperator | minOperator;
-addOperator: PLUS;
-multiplyOperator: MUL;
-minOperator: MIN;
+operator: (MUL) | (PLUS | MIN);
+//addOperator: PLUS;
+//multiplyOperator: MUL;
+//minOperator: MIN;

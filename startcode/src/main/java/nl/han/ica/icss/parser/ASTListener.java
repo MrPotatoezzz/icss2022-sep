@@ -54,27 +54,36 @@ public class ASTListener extends ICSSBaseListener {
         ASTNode last = currentContainer.pop();
         currentContainer.peek().addChild(last);
     }
-    @Override public void enterExpression(ICSSParser.ExpressionContext ctx) {
+    @Override
+    public void enterExpression(ICSSParser.ExpressionContext ctx) {
         ASTNode expression;
-        if(ctx.getChildCount() == 3){
+        if (ctx.getChildCount() == 3) {
             String operator = ctx.getChild(1).getText();
-            if(operator.equals("*")){
+            if (operator.equals("*")) {
                 expression = new MultiplyOperation();
-            }else if(operator.equals("+")){
+            } else if (operator.equals("+")) {
                 expression = new AddOperation();
-            }else if(operator.equals("-")){
+            } else if (operator.equals("-")) {
                 expression = new SubtractOperation();
-            }else{
+            } else {
                 return;
             }
             currentContainer.push(expression);
         }
-
     }
-    @Override public void exitExpression(ICSSParser.ExpressionContext ctx) {
+
+    @Override
+    public void exitExpression(ICSSParser.ExpressionContext ctx) {
+        if(expressionHasTerminalNode(ctx)) {
             ASTNode operation = currentContainer.pop();
             currentContainer.peek().addChild(operation);
+        }
     }
+
+    private boolean expressionHasTerminalNode(ICSSParser.ExpressionContext ctx) {
+        return ctx.operator() != null;
+    }
+
     @Override public void enterDeclaration(ICSSParser.DeclarationContext ctx) {
         ASTNode declaration = new Declaration();
         currentContainer.push(declaration);
