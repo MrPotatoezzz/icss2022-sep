@@ -239,6 +239,18 @@ public class ICSSBaseListener implements ICSSListener {
 	 * <p>The default implementation does nothing.</p>
 	 */
 	@Override public void exitTagSelector(ICSSParser.TagSelectorContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterOperator(ICSSParser.OperatorContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitOperator(ICSSParser.OperatorContext ctx) { }
 
 	/**
 	 * {@inheritDoc}

@@ -123,4 +123,10 @@ public interface ICSSVisitor<T> extends ParseTreeVisitor<T> {
 	 * @return the visitor result
 	 */
 	T visitTagSelector(ICSSParser.TagSelectorContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link ICSSParser#operator}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitOperator(ICSSParser.OperatorContext ctx);
 }

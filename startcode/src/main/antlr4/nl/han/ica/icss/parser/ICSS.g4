@@ -63,7 +63,7 @@ ASSIGNMENT_OPERATOR: ':=';
 //stylesheet: variableAssesment* stylerule* EOF;
 stylesheet: variableAssignment* stylerule* EOF;
 
-stylerule: selector OPEN_BRACE (ifClause | declaration)* CLOSE_BRACE;
+stylerule: selector OPEN_BRACE (variableAssignment | ifClause | declaration)* CLOSE_BRACE;
 declaration: propertyName COLON (variableReference | literal | expression) SEMICOLON;
 
 //variableAssesment: propertyName ASSIGNMENT_OPERATOR literal SEMICOLON;

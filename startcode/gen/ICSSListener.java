@@ -196,4 +196,14 @@ public interface ICSSListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitTagSelector(ICSSParser.TagSelectorContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link ICSSParser#operator}.
+	 * @param ctx the parse tree
+	 */
+	void enterOperator(ICSSParser.OperatorContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link ICSSParser#operator}.
+	 * @param ctx the parse tree
+	 */
+	void exitOperator(ICSSParser.OperatorContext ctx);
 }
