@@ -94,8 +94,6 @@ public class ASTListener extends ICSSBaseListener {
     }
 
     @Override public void enterVariableAssignment(ICSSParser.VariableAssignmentContext ctx) {
-//        ASTNode variableAssignment = new VariableAssignment();
-//        currentContainer.push(variableAssignment);
         ASTNode variableAssignment = new VariableAssignment();
         currentContainer.push(variableAssignment);
     }
@@ -130,61 +128,35 @@ public class ASTListener extends ICSSBaseListener {
     }
 
     //literals
-//    @Override public void enterLiteral(ICSSParser.LiteralContext ctx) { }
-//    @Override public void exitLiteral(ICSSParser.LiteralContext ctx) { }
     @Override public void enterColorLiteral(ICSSParser.ColorLiteralContext ctx) {
         ASTNode colorLiteral = new ColorLiteral(ctx.getText());
         currentContainer.peek().addChild((colorLiteral));
     }
-//    @Override public void exitColorLiteral(ICSSParser.ColorLiteralContext ctx) {
-//        ASTNode last = currentContainer.pop();
-//        currentContainer.peek().addChild(last);
-//    }
+
     @Override public void enterPercentageLiteral(ICSSParser.PercentageLiteralContext ctx) {
         ASTNode percentageLiteral = new PercentageLiteral(ctx.getText());
         currentContainer.peek().addChild((percentageLiteral));
     }
-//    @Override public void exitPercentageLiteral(ICSSParser.PercentageLiteralContext ctx) {
-//        ASTNode last = currentContainer.pop();
-//        currentContainer.peek().addChild(last);
-//    }
+
     @Override public void enterPixelLiteral(ICSSParser.PixelLiteralContext ctx) {
         ASTNode pixelLiteral = new PixelLiteral(ctx.getText());
         currentContainer.peek().addChild(pixelLiteral);
     }
-//    @Override public void exitPixelLiteral(ICSSParser.PixelLiteralContext ctx) {
-//        ASTNode last = currentContainer.pop();
-//        currentContainer.peek().addChild(last);
-//    }
+
     @Override public void enterBooleanLiteral(ICSSParser.BooleanLiteralContext ctx) {
         ASTNode booleanLiteral = new BoolLiteral(ctx.getText());
         currentContainer.peek().addChild((booleanLiteral));
     }
-//    @Override public void exitBooleanLiteral(ICSSParser.BooleanLiteralContext ctx) {
-//        ASTNode last = currentContainer.pop();
-//        currentContainer.peek().addChild(last);
-//    }
     @Override public void enterVariableReference(ICSSParser.VariableReferenceContext ctx) {
         ASTNode variableReference = new VariableReference(ctx.getText());
         currentContainer.peek().addChild((variableReference));
     }
 
-//    @Override public void exitVariableReference(ICSSParser.VariableReferenceContext ctx) {
-//        ASTNode last = currentContainer.pop();
-//        currentContainer.peek().addChild(last);
-//    }
     @Override public void enterScalarLiteral(ICSSParser.ScalarLiteralContext ctx) {
         ASTNode scalarLiteral = new ScalarLiteral(ctx.getText());
         currentContainer.peek().addChild((scalarLiteral));
     }
-//    @Override public void exitScalarLiteral(ICSSParser.ScalarLiteralContext ctx) {
-//        ASTNode last = currentContainer.pop();
-//        currentContainer.peek().addChild(last);
-//    }
 
-    //selectors
-//    @Override public void enterSelector(ICSSParser.SelectorContext ctx) { }
-//    @Override public void exitSelector(ICSSParser.SelectorContext ctx) { }
     @Override public void enterIdSelector(ICSSParser.IdSelectorContext ctx) {
         ASTNode idSelector = new IdSelector(ctx.getText());
         currentContainer.push(idSelector);
@@ -209,23 +181,6 @@ public class ASTListener extends ICSSBaseListener {
         ASTNode last = currentContainer.pop();
         currentContainer.peek().addChild(last);
     }
-
-    //operators
-//    @Override public void enterAddOperator(ICSSParser.AddOperatorContext ctx) {
-//        ASTNode plusOperator = new AddOperation();
-//        currentContainer.push(plusOperator);
-//    }
-//    @Override public void exitAddOperator(ICSSParser.AddOperatorContext ctx) { }
-//    @Override public void enterMultiplyOperator(ICSSParser.MultiplyOperatorContext ctx) {
-//        ASTNode mulOperator = new MultiplyOperation();
-//        currentContainer.push(mulOperator);
-//    }
-//    @Override public void exitMultiplyOperator(ICSSParser.MultiplyOperatorContext ctx) { }
-//    @Override public void enterMinOperator(ICSSParser.MinOperatorContext ctx) {
-//        ASTNode minOperator = new SubtractOperation();
-//        currentContainer.push(minOperator);
-//    }
-//    @Override public void exitMinOperator(ICSSParser.MinOperatorContext ctx) { }
 
     //default stuff
     @Override public void enterEveryRule(ParserRuleContext ctx) { }
