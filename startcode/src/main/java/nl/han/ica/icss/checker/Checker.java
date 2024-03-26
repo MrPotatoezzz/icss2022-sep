@@ -56,6 +56,8 @@ public class Checker {
             }
         }else if(node instanceof Operation){
             checkIfOperatorsAreCorrect((Operation) node);
+        }else if(node instanceof IfClause){
+            checkIfIfstatementContainsBoolean((IfClause)node);
         }
 
         if (node.getClass() == VariableAssignment.class) {
@@ -76,6 +78,18 @@ public class Checker {
             }
         }
         return ExpressionType.UNDEFINED;
+    }
+
+    private void checkIfIfstatementContainsBoolean(IfClause node){
+        ExpressionType expression;
+        if(node.conditionalExpression instanceof VariableReference){
+            expression = getVariableExpressionTypeFromHashMap((VariableReference)node.conditionalExpression);
+        }else {
+            expression = setExpressionType(node.conditionalExpression);
+        }
+        if(expression != ExpressionType.BOOL){
+            node.setError("If-statement must contain a boolean");
+        }
     }
 
     private ExpressionType  checkIfOperatorsAreCorrect(Operation node){
@@ -103,8 +117,13 @@ public class Checker {
                 return ExpressionType.UNDEFINED;
             }
 
-            if(left == ExpressionType.SCALAR && right == ExpressionType.SCALAR){
-                node.setError("Expression cannot be made of only scalars");
+//            if(left == ExpressionType.SCALAR && right == ExpressionType.SCALAR){
+//                node.setError("Expression cannot be made of only scalars");
+//                return ExpressionType.UNDEFINED;
+//            }
+
+            if(left == ExpressionType.COLOR || right == ExpressionType.COLOR){
+                node.setError("Operation cannot contain color");
                 return ExpressionType.UNDEFINED;
             }
 
