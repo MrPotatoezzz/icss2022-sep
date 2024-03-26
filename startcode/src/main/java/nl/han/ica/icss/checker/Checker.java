@@ -4,6 +4,9 @@ import nl.han.ica.datastructures.HANLinkedList;
 import nl.han.ica.datastructures.IHANLinkedList;
 import nl.han.ica.icss.ast.*;
 import nl.han.ica.icss.ast.literals.*;
+import nl.han.ica.icss.ast.operations.AddOperation;
+import nl.han.ica.icss.ast.operations.MultiplyOperation;
+import nl.han.ica.icss.ast.operations.SubtractOperation;
 import nl.han.ica.icss.ast.types.ExpressionType;
 
 import java.util.HashMap;
@@ -11,14 +14,13 @@ import java.util.HashMap;
 
 public class Checker {
     private IHANLinkedList<HashMap<String, ExpressionType>> variableTypes;
-    private IHANLinkedList<VariableReference> ReferencesInCurrentScope = new HANLinkedList<>();
-    HashMap<String, ExpressionType> hashMap = new HashMap<>();
+    private IHANLinkedList<VariableReference> ReferencesInCurrentLocalScope = new HANLinkedList<>();
+    private HashMap<String, ExpressionType> hashMap = new HashMap<>();
 
     public void check(AST ast) {
         variableTypes = new HANLinkedList<>();
         checkASTNode(ast.root, null);
         variableTypes.insert(variableTypes.getSize() - 1, hashMap);
-
     }
 
     public void checkASTNode(ASTNode node, ASTNode parent) {
@@ -35,9 +37,9 @@ public class Checker {
             }
             hashMap = new HashMap<>();
 
-            if(ReferencesInCurrentScope.getSize() != 0) {
-                checkIfReferencedVariableExists(ReferencesInCurrentScope.getFirst());
-                ReferencesInCurrentScope = new HANLinkedList<>();
+            if(ReferencesInCurrentLocalScope.getSize() != 0) {
+                checkIfReferencedVariableExists(ReferencesInCurrentLocalScope.getFirst());
+                ReferencesInCurrentLocalScope = new HANLinkedList<>();
             }
         }
 
@@ -47,11 +49,13 @@ public class Checker {
         } else if (node instanceof VariableAssignment){
             expressionType = setExpressionType(((VariableAssignment) node).expression);
         }else if (node instanceof VariableReference){
-            if(ReferencesInCurrentScope.getSize() == 0){
-                ReferencesInCurrentScope.addFirst((VariableReference) node);
+            if(ReferencesInCurrentLocalScope.getSize() == 0){
+                ReferencesInCurrentLocalScope.addFirst((VariableReference) node);
             }else {
-                ReferencesInCurrentScope.insert(ReferencesInCurrentScope.getSize() - 1, (VariableReference) node);
+                ReferencesInCurrentLocalScope.insert(ReferencesInCurrentLocalScope.getSize() - 1, (VariableReference) node);
             }
+        }else if(node instanceof Operation){
+            checkIfOperatorsAreCorrect((Operation) node);
         }
 
         if (node.getClass() == VariableAssignment.class) {
@@ -63,9 +67,65 @@ public class Checker {
         }
     }
 
+    private ExpressionType getVariableExpressionTypeFromHashMap(VariableReference node){
+        boolean isFound= false;
+        for (int i = 0; i < variableTypes.getSize(); i++) {
+            if(variableTypes.get(i).get(node.name) != null){
+                return variableTypes.get(i).get(node.name);
+                //return variableTypes.get(i).containsKey(node.name);
+            }
+        }
+        return ExpressionType.UNDEFINED;
+    }
+
+    private ExpressionType  checkIfOperatorsAreCorrect(Operation node){
+        ExpressionType left = null;
+        ExpressionType right = null;
+
+            if (node.rhs instanceof Operation){
+                right = checkIfOperatorsAreCorrect((Operation)node.rhs);
+            } else if(node.rhs instanceof VariableReference) {
+                right = getVariableExpressionTypeFromHashMap(((VariableReference) node.rhs));
+            }else if(node.rhs instanceof Literal){
+                right = setExpressionType(node.rhs);
+            }
+
+            if(node.lhs instanceof Operation){
+                left = checkIfOperatorsAreCorrect((Operation)node.lhs);
+            }else if (node.lhs instanceof VariableReference){
+                left = getVariableExpressionTypeFromHashMap(((VariableReference) node.lhs));
+            }else if(node.lhs instanceof Literal){
+                left = setExpressionType(node.lhs);
+            }
+
+            if(left == null || right == null){
+                node.setError("Expression unfinished");
+                return ExpressionType.UNDEFINED;
+            }
+
+            if(left == ExpressionType.SCALAR && right == ExpressionType.SCALAR){
+                node.setError("Expression cannot be made of only scalars");
+                return ExpressionType.UNDEFINED;
+            }
+
+            if(left == right || (left == ExpressionType.SCALAR || right == ExpressionType.SCALAR)){
+                if(left == ExpressionType.SCALAR){
+                    return right;
+                }
+                return left;
+            }
+
+            if(left != right){
+                node.setError("Expressions must be of same type");
+                return ExpressionType.UNDEFINED;
+            }
+
+        return ExpressionType.UNDEFINED;
+    }
+
 
     private void checkIfReferencedVariableExists(ASTNode node){
-        if(ReferencesInCurrentScope.getSize() == 0){
+        if(ReferencesInCurrentLocalScope.getSize() == 0){
             return;
         }
         ExpressionType expressionType = ExpressionType.UNDEFINED;
@@ -87,9 +147,9 @@ public class Checker {
         } else if (!correctType && expressionType != ExpressionType.UNDEFINED) {
             node.setError("Can't change " + reference.name + " to type " + expressionType);
         }
-        ReferencesInCurrentScope.delete(0);
-        if(ReferencesInCurrentScope.getSize() != 0) {
-            checkIfReferencedVariableExists(ReferencesInCurrentScope.getFirst());
+        ReferencesInCurrentLocalScope.delete(0);
+        if(ReferencesInCurrentLocalScope.getSize() != 0) {
+            checkIfReferencedVariableExists(ReferencesInCurrentLocalScope.getFirst());
         }
     }
 
