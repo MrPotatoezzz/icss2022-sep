@@ -4,9 +4,6 @@ import nl.han.ica.datastructures.HANLinkedList;
 import nl.han.ica.datastructures.IHANLinkedList;
 import nl.han.ica.icss.ast.*;
 import nl.han.ica.icss.ast.literals.*;
-import nl.han.ica.icss.ast.operations.AddOperation;
-import nl.han.ica.icss.ast.operations.MultiplyOperation;
-import nl.han.ica.icss.ast.operations.SubtractOperation;
 import nl.han.ica.icss.ast.types.ExpressionType;
 
 import java.util.HashMap;
@@ -25,14 +22,17 @@ public class Checker {
 
     public void checkASTNode(ASTNode node, ASTNode parent) {
         if (node == null) {
-            //ReferencesInCurrentScope = null;
             return;
         }
 
         if (node.getClass() == Stylerule.class) {
+
             if (variableTypes.getSize() == 0) {
                 variableTypes.addFirst(hashMap);
             } else {
+                if(variableTypes.getSize() > 1) {
+                    variableTypes.delete(0);
+                }
                 variableTypes.insert(variableTypes.getSize() - 1, hashMap);
             }
             hashMap = new HashMap<>();
@@ -45,9 +45,9 @@ public class Checker {
 
         ExpressionType expressionType = ExpressionType.UNDEFINED;
         if (node instanceof Declaration) {
-            expressionType = setExpressionType(((Declaration) node).expression);
+            expressionType = getExpressionType(((Declaration) node).expression);
         } else if (node instanceof VariableAssignment){
-            expressionType = setExpressionType(((VariableAssignment) node).expression);
+            expressionType = getExpressionType(((VariableAssignment) node).expression);
         }else if (node instanceof VariableReference){
             if(ReferencesInCurrentLocalScope.getSize() == 0){
                 ReferencesInCurrentLocalScope.addFirst((VariableReference) node);
@@ -70,13 +70,20 @@ public class Checker {
     }
 
     private ExpressionType getVariableExpressionTypeFromHashMap(VariableReference node){
-        boolean isFound= false;
-        for (int i = 0; i < variableTypes.getSize(); i++) {
-            if(variableTypes.get(i).get(node.name) != null){
-                return variableTypes.get(i).get(node.name);
-                //return variableTypes.get(i).containsKey(node.name);
-            }
+        //for (int i = 0; i < variableTypes.getSize(); i++) {
+//            if(variableTypes.get(variableTypes.getSize() - 1).get(node.name) != null){
+//                return variableTypes.get(variableTypes.getSize() - 1).get(node.name);
+//            }
+        if(hashMap.get(node.name) != null){
+            return getExpressionType(node);
         }
+
+        if(variableTypes.get(variableTypes.getSize() - 1).get(node.name) != null){
+            return variableTypes.get(variableTypes.getSize() - 1).get(node.name);
+        }
+
+        node.setError("variable not in this scope");
+
         return ExpressionType.UNDEFINED;
     }
 
@@ -85,7 +92,7 @@ public class Checker {
         if(node.conditionalExpression instanceof VariableReference){
             expression = getVariableExpressionTypeFromHashMap((VariableReference)node.conditionalExpression);
         }else {
-            expression = setExpressionType(node.conditionalExpression);
+            expression = getExpressionType(node.conditionalExpression);
         }
         if(expression != ExpressionType.BOOL){
             node.setError("If-statement must contain a boolean");
@@ -101,7 +108,7 @@ public class Checker {
             } else if(node.rhs instanceof VariableReference) {
                 right = getVariableExpressionTypeFromHashMap(((VariableReference) node.rhs));
             }else if(node.rhs instanceof Literal){
-                right = setExpressionType(node.rhs);
+                right = getExpressionType(node.rhs);
             }
 
             if(node.lhs instanceof Operation){
@@ -109,7 +116,7 @@ public class Checker {
             }else if (node.lhs instanceof VariableReference){
                 left = getVariableExpressionTypeFromHashMap(((VariableReference) node.lhs));
             }else if(node.lhs instanceof Literal){
-                left = setExpressionType(node.lhs);
+                left = getExpressionType(node.lhs);
             }
 
             if(left == null || right == null){
@@ -133,12 +140,7 @@ public class Checker {
                 }
                 return left;
             }
-
-            if(left != right){
-                node.setError("Expressions must be of same type");
-                return ExpressionType.UNDEFINED;
-            }
-
+        node.setError("Expressions must be of same type");
         return ExpressionType.UNDEFINED;
     }
 
@@ -153,7 +155,7 @@ public class Checker {
         boolean correctType = false;
         for (int i = 0; i < variableTypes.getSize(); i++) {
             if (variableTypes.get(i).containsKey(reference.name)) {
-                expressionType = setExpressionType(((VariableReference) node));
+                expressionType = getExpressionType(((VariableReference) node));
                 if (variableTypes.get(i).get(reference.name) == expressionType) {
                     correctType = true;
                 }
@@ -172,7 +174,7 @@ public class Checker {
         }
     }
 
-    private ExpressionType setExpressionType(Expression node) {
+    private ExpressionType getExpressionType(Expression node) {
         if (node instanceof ColorLiteral) {
             return ExpressionType.COLOR;
         } else if (node instanceof BoolLiteral) {
@@ -183,8 +185,6 @@ public class Checker {
             return ExpressionType.PIXEL;
         } else if (node instanceof ScalarLiteral) {
             return ExpressionType.SCALAR;
-//        } else if (node instanceof VariableReference) {
-//            return
         } else {
             return ExpressionType.UNDEFINED;
         }
