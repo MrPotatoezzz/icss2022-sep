@@ -18,7 +18,6 @@ public class Checker {
     public void check(AST ast) {
         variableTypes = new HANLinkedList<>();
         checkASTNode(ast.root);
-        variableTypes.insert(variableTypes.getSize() - 1, hashMap);
     }
 
     public void checkASTNode(ASTNode node) {
@@ -47,7 +46,7 @@ public class Checker {
             checkIfIfstatementContainsBoolean((IfClause)node);
         }
 
-        if (node.getClass() == VariableAssignment.class) {
+        if (node instanceof VariableAssignment) {
             hashMap.put(((VariableAssignment) node).name.name, expressionType);
         }
 
