@@ -4,6 +4,7 @@ import nl.han.ica.datastructures.HANLinkedList;
 import nl.han.ica.datastructures.IHANLinkedList;
 import nl.han.ica.icss.ast.*;
 import nl.han.ica.icss.ast.literals.*;
+import nl.han.ica.icss.ast.operations.MultiplyOperation;
 import nl.han.ica.icss.ast.types.ExpressionType;
 
 import java.util.HashMap;
@@ -16,36 +17,22 @@ public class Checker {
 
     public void check(AST ast) {
         variableTypes = new HANLinkedList<>();
-        checkASTNode(ast.root, null);
+        checkASTNode(ast.root);
         variableTypes.insert(variableTypes.getSize() - 1, hashMap);
     }
 
-    public void checkASTNode(ASTNode node, ASTNode parent) {
+    public void checkASTNode(ASTNode node) {
         if (node == null) {
             return;
         }
 
-        if (node.getClass() == Stylerule.class) {
-
-            if (variableTypes.getSize() == 0) {
-                variableTypes.addFirst(hashMap);
-            } else {
-                if(variableTypes.getSize() > 1) {
-                    variableTypes.delete(0);
-                }
-                variableTypes.insert(variableTypes.getSize() - 1, hashMap);
-            }
-            hashMap = new HashMap<>();
-
-            if(ReferencesInCurrentLocalScope.getSize() != 0) {
-                checkIfReferencedVariableExists(ReferencesInCurrentLocalScope.getFirst());
-                ReferencesInCurrentLocalScope = new HANLinkedList<>();
-            }
+        if (node instanceof Stylerule) {
+            newScope();
         }
 
         ExpressionType expressionType = ExpressionType.UNDEFINED;
         if (node instanceof Declaration) {
-            expressionType = getExpressionType(((Declaration) node).expression);
+               expressionType = checkDeclaration((Declaration) node);
         } else if (node instanceof VariableAssignment){
             expressionType = getExpressionType(((VariableAssignment) node).expression);
         }else if (node instanceof VariableReference){
@@ -65,15 +52,54 @@ public class Checker {
         }
 
         for (ASTNode childNode : node.getChildren()) {
-            checkASTNode(childNode, node);
+            checkASTNode(childNode);
         }
     }
 
+    private void newScope(){
+        if (variableTypes.getSize() == 0) {
+            variableTypes.addFirst(hashMap);
+        } else {
+            if(variableTypes.getSize() > 1) {
+                variableTypes.delete(0);
+            }
+            variableTypes.insert(variableTypes.getSize() - 1, hashMap);
+        }
+        hashMap = new HashMap<>();
+
+        if(ReferencesInCurrentLocalScope.getSize() != 0) {
+            checkIfReferencedVariableExists(ReferencesInCurrentLocalScope.getFirst());
+            ReferencesInCurrentLocalScope = new HANLinkedList<>();
+        }
+    }
+    private ExpressionType checkDeclaration(Declaration node){
+        ExpressionType expressionType = getExpressionType(node.expression);
+        if(node.expression instanceof VariableReference){
+            expressionType = getVariableExpressionTypeFromHashMap((VariableReference) node.expression);
+        }else if(node.expression instanceof Operation){
+            expressionType = checkIfOperatorsAreCorrect((Operation)node.expression);
+        }
+
+        switch(node.property.name) {
+            case "color":
+            case "background-color":
+                if (expressionType != ExpressionType.COLOR) {
+                    node.setError("property must be color");
+                }
+                break;
+            case "height":
+            case "width":
+                if (expressionType != ExpressionType.PIXEL && expressionType != ExpressionType.PERCENTAGE) {
+                    node.setError("property must be pixel or percentage");
+                }
+                break;
+            default:
+                break;
+        }
+        return expressionType;
+    }
+
     private ExpressionType getVariableExpressionTypeFromHashMap(VariableReference node){
-        //for (int i = 0; i < variableTypes.getSize(); i++) {
-//            if(variableTypes.get(variableTypes.getSize() - 1).get(node.name) != null){
-//                return variableTypes.get(variableTypes.getSize() - 1).get(node.name);
-//            }
         if(hashMap.get(node.name) != null){
             return getExpressionType(node);
         }
@@ -119,15 +145,17 @@ public class Checker {
                 left = getExpressionType(node.lhs);
             }
 
+            if(node instanceof MultiplyOperation){
+                if(left != ExpressionType.SCALAR && right != ExpressionType.SCALAR){
+                    node.setError("One of the types must be scalar");
+                    return ExpressionType.UNDEFINED;
+                }
+            }
+
             if(left == null || right == null){
                 node.setError("Expression unfinished");
                 return ExpressionType.UNDEFINED;
             }
-
-//            if(left == ExpressionType.SCALAR && right == ExpressionType.SCALAR){
-//                node.setError("Expression cannot be made of only scalars");
-//                return ExpressionType.UNDEFINED;
-//            }
 
             if(left == ExpressionType.COLOR || right == ExpressionType.COLOR){
                 node.setError("Operation cannot contain color");
@@ -140,6 +168,7 @@ public class Checker {
                 }
                 return left;
             }
+
         node.setError("Expressions must be of same type");
         return ExpressionType.UNDEFINED;
     }

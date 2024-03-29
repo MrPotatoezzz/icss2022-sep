@@ -45,28 +45,11 @@ ASSIGNMENT_OPERATOR: ':=';
 
 
 //--- PARSER: ---
-//stylesheet: variableAssesment* stylerule* EOF;
-//text: LOWER_IDENT+ | CAPITAL_IDENT+;
-//head: selector;
-//body: OPEN_BRACE declaration* CLOSE_BRACE;
-//declaration: (text COLON (literal | expression) SEMICOLON ) | ifClause;
-//literal: COLOR | PERCENTAGE | PIXELSIZE | TRUE | FALSE | text | SCALAR;
-//stylerule: head body;
-//variableAssesment: propertyName ASSIGNMENT_OPERATOR literal SEMICOLON;
-//operator: PLUS | MIN | MUL;
-//expression: literal operator (expression | literal);
-//ifClause: IF BOX_BRACKET_OPEN literal BOX_BRACKET_CLOSE body elseClause?;
-//elseClause: ELSE body elseClause?;
-//propertyName: text;
-//selector: ID_IDENT | CLASS_IDENT | text;
-
-//stylesheet: variableAssesment* stylerule* EOF;
 stylesheet: variableAssignment* stylerule* EOF;
 
 stylerule: selector OPEN_BRACE (variableAssignment | ifClause | declaration)* CLOSE_BRACE;
 declaration: propertyName COLON (variableReference | literal | expression) SEMICOLON;
 
-//variableAssesment: propertyName ASSIGNMENT_OPERATOR literal SEMICOLON;
 variableAssignment: variableReference ASSIGNMENT_OPERATOR expression SEMICOLON;
 
 expression: (literal operator (expression | literal)) | literal;
@@ -75,7 +58,6 @@ elseClause: ELSE OPEN_BRACE (ifClause | declaration | variableAssignment)* CLOSE
 propertyName: CAPITAL_IDENT+ | LOWER_IDENT+;
 
 //literals
-//literal: colorLiteral | percentageLiteral | pixelLiteral | booleanLiteral | variableReference | scalarLiteral;
 literal: colorLiteral | percentageLiteral | pixelLiteral | booleanLiteral | variableReference | scalarLiteral;
 colorLiteral: COLOR;
 percentageLiteral: PERCENTAGE;
@@ -95,6 +77,3 @@ tagSelector: LOWER_IDENT+ | CAPITAL_IDENT+;
 
 //operations
 operator: (MUL) | (PLUS | MIN);
-//addOperator: PLUS;
-//multiplyOperator: MUL;
-//minOperator: MIN;
