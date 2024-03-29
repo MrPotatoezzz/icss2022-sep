@@ -70,8 +70,8 @@ declaration: propertyName COLON (variableReference | literal | expression) SEMIC
 variableAssignment: variableReference ASSIGNMENT_OPERATOR expression SEMICOLON;
 
 expression: (literal operator (expression | literal)) | literal;
-ifClause: IF BOX_BRACKET_OPEN literal BOX_BRACKET_CLOSE OPEN_BRACE (ifClause | declaration)* CLOSE_BRACE elseClause?;
-elseClause: ELSE OPEN_BRACE (ifClause | declaration)* CLOSE_BRACE elseClause?;
+ifClause: IF BOX_BRACKET_OPEN literal BOX_BRACKET_CLOSE OPEN_BRACE (ifClause | declaration | variableAssignment)* CLOSE_BRACE elseClause?;
+elseClause: ELSE OPEN_BRACE (ifClause | declaration | variableAssignment)* CLOSE_BRACE elseClause?;
 propertyName: CAPITAL_IDENT+ | LOWER_IDENT+;
 
 //literals
