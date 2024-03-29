@@ -21,30 +21,18 @@ public class Evaluator implements Transform {
 
     @Override
     public void apply(AST ast) {
-        //variableValues = new HANLinkedList<>();
         variableValues.addFirst(new HashMap<>());
         transformASTNodeReferences(ast.root);
 
         for (ASTNode node:nodesToRemove) {
             ast.root.removeChild(node);;
         }
-
-//        for (int i = 0; i < nodesToRemove.getSize(); i++) {
-//            ast.root.removeChild(nodesToRemove.get(i));
-//        }
-        var u = "k";
-        //transformASTNodeDeclarations(ast.root);
     }
 
     private void transformASTNodeReferences(ASTNode node){
         for (ASTNode childNode : node.getChildren()) {
             if (childNode instanceof VariableAssignment) {
                 variableValues.get(0).put(((VariableAssignment) childNode).name.name, (Literal) ((VariableAssignment) childNode).expression);
-//                if (nodesToRemove.getSize() == 0) {
-//                    nodesToRemove.addFirst(childNode);
-//                } else {
-//                    nodesToRemove.insert(nodesToRemove.getSize() - 1, childNode);
-//                }
             nodesToRemove.add(childNode);
             }else if(childNode instanceof Stylerule){
                 transformStyleRule((Stylerule) childNode);
@@ -57,11 +45,6 @@ public class Evaluator implements Transform {
         for (ASTNode node: stylerule.getChildren()) {
             if (node instanceof VariableAssignment) {
                 variableValues.get(0).put(((VariableAssignment) node).name.name, (Literal) ((VariableAssignment) node).expression);
-//                if (nodesToRemove.getSize() == 0) {
-//                    nodesToRemove.addFirst(node);
-//                } else {
-//                    nodesToRemove.insert(nodesToRemove.getSize() - 1, node);
-//                }
                 bodyNodesToRemove.add(node);
             } else if (node instanceof VariableReference) {
                 transformReference((VariableReference) node, stylerule);
@@ -83,78 +66,45 @@ public class Evaluator implements Transform {
             }
 
             if (node instanceof IfClause) {
-                transformIfNode((IfClause) node, stylerule);
+                transformIfNode((IfClause) node, stylerule, 1);
                 stylerule.body.removeIf(childNode -> childNode instanceof IfClause);
                 stylerule.body.removeIf(childNode -> childNode instanceof VariableReference);
                 bodyNodesToRemove.add(node);
             }
-
-//            if (!node.getChildren().isEmpty()) {
-//                for (ASTNode childNode : node.getChildren()) {
-//                    transformASTNodeReferences(childNode);
-//                }
-//            }
         }
         for (ASTNode node : bodyNodesToRemove) {
             stylerule.removeChild(node);;
         }
     }
 
-    private void transformIfNode(IfClause ifClause, Stylerule parent){
+    private void transformIfNode(IfClause ifClause, Stylerule parent, int place){
         Expression expression = ifClause.conditionalExpression;
         if(ifClause.conditionalExpression instanceof VariableReference){
             expression = variableValues.get(0).get(((VariableReference) ifClause.conditionalExpression).name);
         }
 
         if (((BoolLiteral) expression).value) {
-            //parent.addAll(ifClause.body);
             for (ASTNode ifNode : ifClause.body) {
+                place++;
                 if(ifNode instanceof Declaration){
-                    parent.body.add(ifNode);
-                }else
-                    if(ifNode instanceof IfClause) {
-                        transformIfNode((IfClause) ifNode, parent);
+                    parent.body.add(place, ifNode);
+                }else if(ifNode instanceof IfClause) {
+                        transformIfNode((IfClause) ifNode, parent, place);
                     }
                 }
             }
          else {
-            //parent.addAll(ifClause.elseClause.body);
             if(ifClause.elseClause != null){
             for (ASTNode ifNode : ifClause.elseClause.body) {
+                place++;
                     if (ifNode instanceof Declaration) {
-                        parent.body.add(ifNode);
+                        parent.body.add(place,ifNode);
+                    }else if(ifNode instanceof IfClause) {
+                        transformIfNode((IfClause) ifNode, parent, place);
                     }
                 }
             }
         }
-
-//        parent.removeIf(childNode -> childNode instanceof IfClause);
-//        parent.removeIf(childNode -> childNode instanceof VariableReference);
-
-        //return parent.body;
-//        IHANLinkedList<IfClause> nestedIfNodes = new HANLinkedList();
-//        for (ASTNode ifNode : ifClause.body) {
-//            if(ifNode instanceof IfClause){
-//                if(nestedIfNodes.getSize() == 0){
-//                    nestedIfNodes.addFirst((IfClause) ifNode);
-//                }else{
-//                    nestedIfNodes.insert(nestedIfNodes.getSize() - 1,(IfClause) ifNode);
-//                }
-//            }else if(ifNode instanceof Declaration) {
-//                parent.addChild(ifNode);
-//            }
-//        }
-//
-//        for (int i = 0; i < nestedIfNodes.getSize(); i++) {
-//            transformIfnode(nestedIfNodes.get(i), ifClause);
-//        }
-//
-//        if(nodesToRemove.getSize() == 0){
-//            nodesToRemove.addFirst(ifClause);
-//        }else {
-//            nodesToRemove.insert(nodesToRemove.getSize() - 1, ifClause);
-//        }
-//        nodesToRemove.insert(nodesToRemove.getSize() - 1, ifClause.elseClause);
     }
 
     private void transformReference(VariableReference ref, ASTNode parent){
