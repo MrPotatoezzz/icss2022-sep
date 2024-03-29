@@ -13,12 +13,13 @@ import java.util.HashMap;
 public class Checker {
     private IHANLinkedList<HashMap<String, ExpressionType>> variableTypes;
     private IHANLinkedList<VariableReference> ReferencesInCurrentLocalScope = new HANLinkedList<>();
-    private HashMap<String, ExpressionType> hashMap = new HashMap<>();
+    //private HashMap<String, ExpressionType> hashMap = new HashMap<>();
 
     public void check(AST ast) {
         variableTypes = new HANLinkedList<>();
+        newScope();
         checkASTNode(ast.root);
-        variableTypes.insert(variableTypes.getSize() - 1, hashMap);
+        //variableTypes.insert(variableTypes.getSize() - 1, variableTypes.get(0));
     }
 
     public void checkASTNode(ASTNode node) {
@@ -27,6 +28,7 @@ public class Checker {
         }
 
         if (node instanceof Stylerule) {
+            removeScope();
             newScope();
         }
 
@@ -47,8 +49,8 @@ public class Checker {
             checkIfIfstatementContainsBoolean((IfClause)node);
         }
 
-        if (node.getClass() == VariableAssignment.class) {
-            hashMap.put(((VariableAssignment) node).name.name, expressionType);
+        if (node instanceof VariableAssignment) {
+            variableTypes.get(0).put(((VariableAssignment) node).name.name, expressionType);
         }
 
         for (ASTNode childNode : node.getChildren()) {
@@ -58,20 +60,26 @@ public class Checker {
 
     private void newScope(){
         if (variableTypes.getSize() == 0) {
-            variableTypes.addFirst(hashMap);
+            variableTypes.addFirst(new HashMap<>());
         } else {
-            if(variableTypes.getSize() > 1) {
-                variableTypes.delete(0);
-            }
-            variableTypes.insert(variableTypes.getSize() - 1, hashMap);
+            variableTypes.insert(variableTypes.getSize() - 1, variableTypes.get(0));
         }
-        hashMap = new HashMap<>();
+        //hashMap = new HashMap<>();
+
+
+    }
+
+    private void removeScope(){
+        if(variableTypes.getSize() > 1) {
+            variableTypes.delete(0);
+        }
 
         if(ReferencesInCurrentLocalScope.getSize() != 0) {
             checkIfReferencedVariableExists(ReferencesInCurrentLocalScope.getFirst());
             ReferencesInCurrentLocalScope = new HANLinkedList<>();
         }
     }
+
     private ExpressionType checkDeclaration(Declaration node){
         ExpressionType expressionType = getExpressionType(node.expression);
         if(node.expression instanceof VariableReference){
@@ -100,7 +108,7 @@ public class Checker {
     }
 
     private ExpressionType getVariableExpressionTypeFromHashMap(VariableReference node){
-        if(hashMap.get(node.name) != null){
+        if(variableTypes.get(0).get(node.name) != null){
             return getExpressionType(node);
         }
 
