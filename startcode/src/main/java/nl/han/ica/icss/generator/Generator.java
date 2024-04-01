@@ -24,12 +24,12 @@ public class Generator {
                     } else if (selector instanceof TagSelector) {
                         css.append(((TagSelector) selector).tag);
                     }
-                    css.append("{\n");
+                    css.append(" {\n");
                 }
 
                 for (ASTNode declaration: ((Stylerule) childNode).body) {
                      if (declaration instanceof Declaration) {
-                         css.append(((Declaration) declaration).property.name).append(": ");
+                         css.append("  ").append(((Declaration) declaration).property.name).append(": ");
                          Expression expression = ((Declaration) declaration).expression;
                          if(expression instanceof ColorLiteral){
                              css.append(((ColorLiteral) expression).value).append(";\n");
@@ -42,7 +42,7 @@ public class Generator {
                          }
                      }
                 }
-                css.append("}\n\n");
+                css.append("}\n");
             }
         }
         return css.toString();
